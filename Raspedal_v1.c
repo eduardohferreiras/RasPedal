@@ -11,25 +11,25 @@ using namespace std;
 //Parametro Fuzz
 float volume_fuzz;
 float teto_fuzz;
+float pteto_fuzz;
+float octave_on;
 void add_fuzz (jack_default_audio_sample_t *out, int j)
 {
-	teto_fuzz = pow(2.0 , 22.0)/pow(2.0 , 32.0); 
-	volume_fuzz = 4;
+	teto_fuzz = pow(2.0 , pteto_fuzz)/pow(2.0 , 32.0); 
 			
 	if(out[j] > teto_fuzz){
-		out[j] = volume_fuzz*teto_fuzz;
+		out[j] = teto_fuzz;
 	}
 	else if(out[j] < -1*teto_fuzz){
-		out[j] = -volume_fuzz*teto_fuzz;
+		out[j] = octave_on*teto_fuzz;
 	}
-	else {
-			out[j] = volume_fuzz*out[j];
-	}
+
 }
 
 //Paramentros Delay
 float *cauda_delay;
 int tamanho_cauda;
+float delay_time;
 int counter;
 float mix;
 float feedback;
@@ -85,7 +85,7 @@ class JackFullDuplex : public JackClient {
         
         for (uint j=0; j<nframes; j++){
 			
-			out[j]= 4*in[j];
+			out[j]= in[j];
 			if(fuzz_on == 1) add_fuzz(out, j);
 			if(tremolo_on == 1) add_tremolo(out, j);
 			if(delay_on == 1) add_delay(out, j);
@@ -108,15 +108,19 @@ class JackFullDuplex : public JackClient {
 };
 
 int main(int argc, char *argv[]) {
+	
+	//Inicialização e paramentros do Fuzz
+	pteto_fuzz = 25.0;
+	octave_on = -1.0;
 		
 	//Inicialização e paramentros do Tremolo
 	contador_tremolo = 0;
-	velocidade_tremolo = 10;
+	velocidade_tremolo = 3;
 	subindo = 1;
 	
 	//Inicialização e Parametros do Delay
 	counter = 0;
-	float delay_time = 0.3;
+	delay_time = 0.3;
 	mix = 0.25;
 	feedback = 0.5;
 	
@@ -135,8 +139,8 @@ int main(int argc, char *argv[]) {
 	counter_filtro = 0;
 	
 	fuzz_on = 0;
-	tremolo_on = 1;
-	delay_on = 0;
+	tremolo_on = 0;
+	delay_on = 0; 
 	filtro_on = 0;
 
 	
@@ -168,28 +172,126 @@ int main(int argc, char *argv[]) {
 	cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 	cout<<"                                                                                  ----- WELCOME TO RASPEDAL, YOUR FREE AUDIO DSP PLATAFORM ------\n\n\n\n\n\n\n";
 	cout<< "Instructions:\n\n";
-	cout << " - To toggle delay: d\n";
-	cout << " - To toggle tremolo: t\n";
-	cout << " - To toggle fuzz: f\n";
-	cout << " - To toggle filter: t\n\n";
+	cout << "- FUZZ:\n";
+	cout << " - To toggle fuzz: q\n";
+	cout << " - To increase fuzz threshold: w\n";
+	cout << " - To decrease fuzz threshold: e\n";
+	cout << " - To toggle Crazy Mode: r\n";
+	cout << "- DELAY:\n";
+	cout << " - To toggle delay: a\n";
+	cout << " - To increase delay time: x\n";
+	cout << " - To decrease delay time: c\n";
+	cout << " - To increase delay feedback: x\n";
+	cout << " - To decrease delay feedback: c\n";
+	cout << " - To increase delay mix: x\n";
+	cout << " - To decrease delay mix: c\n";
+	cout << "- TREMOLO:\n";
+	cout << " - To toggle tremolo: z\n";
+	cout << " - To increase tremolo speed: x\n";
+	cout << " - To decrease tremolo speed: c\n";
+	cout << "- FILTER:\n";
+	cout << " - To toggle filter: l\n\n";
 
 
 	char comando;
 	while (1)
 	{
 		cout << ">>>";
-		comando = "-";
 		cin >> comando;
+	
+		//Comandos Fuzz
+		
+		if(comando == 'q'){
+			if(fuzz_on == 1){fuzz_on = 0; cout << "Fuzz off!\n";}
+			else if(fuzz_on == 0){fuzz_on = 1; cout << "Fuzz on!\n";}
+		}
+		
+		if(comando == 'w'){
+			if(pteto_fuzz >= 31.0){cout << "Fuzz threshold is already maximized!\n";}
+			else {pteto_fuzz = pteto_fuzz + 1.0; cout << "Fuzz threshold raised!\n";}
+		}
+		
+		if(comando == 'e'){
+			if(pteto_fuzz <= 1.0){cout << "Fuzz threshold is already minimized!\n";}
+			else{ pteto_fuzz = pteto_fuzz - 1.0; cout << "Fuzz threshold decreased!\n";}
+		}
+		
+		if(comando == 'r'){
+			octave_on = octave_on*-1.0;
+			if(octave_on > 0){cout << "Crazy Mode on!\n";}
+			else if(octave_on < 0){cout << "Crazy Mode off!\n";}
+		}
+		
+		//Comandos Delay
+		
+		if(comando == 'a'){
+			if(delay_on == 1){delay_on = 0; cout << "Delay off!\n";}
+			else if(delay_on == 0){delay_on = 1; cout << "Delay on!\n";}
+		}
+		
+		if(comando == 's'){
+			if(delay_time >= 10.0){cout << "Delay time is already maximized!\n";}
+			else {
+				delay_time = delay_time + 0.1; cout << "Delay time raised!\n";
+				tamanho_cauda = (int)floor(delay_time*48000);
+				cauda_delay = new float[tamanho_cauda];
+				for (uint j=0; j<tamanho_cauda; j++){
+					cauda_delay[j] = 0;
+				}
+			}
+		}
 		
 		if(comando == 'd'){
-			(delay_on ++) % 2;
-			if(delay_on == 1)cout << "Delay on!\n";
-			if(delay_on == 0)cout << "Delay off!\n";
+			if(delay_time <= 0.11){cout << "Delay time is already minimized!\n";}
+			else {
+				delay_time = delay_time - 0.1; cout << "Delay time decreased!\n";
+				tamanho_cauda = (int)floor(delay_time*48000);
+				cauda_delay = new float[tamanho_cauda];
+				for (uint j=0; j<tamanho_cauda; j++){
+					cauda_delay[j] = 0;
+				}
+			}
 		}
-		if(comando == 't') tremolo_on = tremolo_on ++ % 2;
-		if(comando == 'f') fuzz_on = fuzz_on ++ % 2;
-		if(comando == 't') filtro_on = filtro_on ++ % 2;
+		if(comando == 'f'){
+			if(feedback >= 0.99){cout << "Delay feedback is already maximized!\n";}
+			else {feedback = feedback + 0.05; cout << "Delay feedback raised!\n";}
+		}
+		if(comando == 'g'){
+			if(feedback <= 0.005){cout << "Delay feedback is already minimized!\n";}
+			else {feedback = feedback - 0.05; cout << "Delay feedback decreased!\n";}
+		}
+		if(comando == 'h'){
+			if(mix >= 0.99){cout << "Delay mix is already maximized!\n";}
+			else {mix = mix + 0.05; cout << "Delay mix raised!\n";}
+		}
+		if(comando == 'j'){
+			if(mix <= 0.005){cout << "Delay mix is already minimized!\n";}
+			else {mix = mix - 0.05; cout << "Delay mix decreased!\n";}
+		}
 		
+		
+		//Comandos Tremolo
+		
+		if(comando == 'z'){
+			if(tremolo_on == 1){tremolo_on = 0; cout << "Tremolo off!\n";}
+			else if(tremolo_on == 0){tremolo_on = 1; cout << "Tremolo on!\n";}
+		}
+		if(comando == 'x'){
+			if(velocidade_tremolo == 1){cout << "Tremolo speed is already maximized!\n";}
+			else {velocidade_tremolo = velocidade_tremolo - 1; cout << "Tremolo speed raised!\n";}
+		}
+		if(comando == 'c'){
+			if(velocidade_tremolo == 100){cout << "Tremolo speed is already minimized!\n";}
+			else {velocidade_tremolo = velocidade_tremolo + 1; cout << "Tremolo speed decreased!\n";}
+		}
+		
+		//Comandos Filtro
+		
+		if(comando == 'l'){
+			if(filtro_on == 1){filtro_on = 0; cout << "Filtro off!\n";}
+			else if(filtro_on == 0){filtro_on = 1; cout << "Filtro on!\n";}
+		}
+
 	}
 	
 	
