@@ -58,7 +58,8 @@ int tamanho_filtro;
 void add_filtro (jack_default_audio_sample_t *out, int j)
 {
 	filtro[counter_filtro] = out[j];
-	out[j] = 0.2308*out[j] + 0.1929*filtro[(counter_filtro - 1)%tamanho_filtro] + 0.1929*filtro[(counter_filtro - 2)%tamanho_filtro] + 0.2308*filtro[(counter_filtro - 3)%tamanho_filtro];
+	out[j] = 0.0502*out[j] + 0.0536*filtro[(counter_filtro - 1)%tamanho_filtro] + 0.0502*filtro[(counter_filtro - 2)%tamanho_filtro]; 
+	out[j] = 8*out[j];
 	counter_filtro ++;
 	counter_filtro = counter_filtro % tamanho_filtro;
 }
@@ -131,7 +132,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	// Inicializaçãoe parametros do Filtro
-	tamanho_filtro = 4;
+	tamanho_filtro = 3;
 	filtro = new float[tamanho_filtro];
 	for (uint j=0; j<tamanho_filtro; j++){
 		filtro[j] = 0;
@@ -179,12 +180,12 @@ int main(int argc, char *argv[]) {
 	cout << " - To toggle Crazy Mode: r\n";
 	cout << "- DELAY:\n";
 	cout << " - To toggle delay: a\n";
-	cout << " - To increase delay time: x\n";
-	cout << " - To decrease delay time: c\n";
-	cout << " - To increase delay feedback: x\n";
-	cout << " - To decrease delay feedback: c\n";
-	cout << " - To increase delay mix: x\n";
-	cout << " - To decrease delay mix: c\n";
+	cout << " - To increase delay time: s\n";
+	cout << " - To decrease delay time: d\n";
+	cout << " - To increase delay feedback: f\n";
+	cout << " - To decrease delay feedback: g\n";
+	cout << " - To increase delay mix: h\n";
+	cout << " - To decrease delay mix: j\n";
 	cout << "- TREMOLO:\n";
 	cout << " - To toggle tremolo: z\n";
 	cout << " - To increase tremolo speed: x\n";
