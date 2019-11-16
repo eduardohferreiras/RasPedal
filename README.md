@@ -28,5 +28,10 @@ sudo make install
 
 audioInjector-setup.sh
 
+alsactl --file /usr/share/doc/audioInjector/asound.state.MIC.thru.test restore
+
+alsactl --file /usr/share/doc/audioInjector/asound.state.RCA.thru.test restore
+
+
 6) Enjoy! :)
 
