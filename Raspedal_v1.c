@@ -64,6 +64,10 @@ void add_filtro (jack_default_audio_sample_t *out, int j)
 	counter_filtro = counter_filtro % tamanho_filtro;
 }
 
+//Volume global
+float volGlobal;
+
+
 //Variaveis de controle
 
 int fuzz_on;
@@ -91,7 +95,7 @@ class JackFullDuplex : public JackClient {
 			if(tremolo_on == 1) add_tremolo(out, j);
 			if(delay_on == 1) add_delay(out, j);
 			if(filtro_on == 1) add_filtro(out, j);
-			out[j] = 2*out[j];
+			out[j] = 2*volGlobal*out[j];
 		
 		}
 		
@@ -110,13 +114,15 @@ class JackFullDuplex : public JackClient {
 
 int main(int argc, char *argv[]) {
 	
+	volGlobal = 1;
+	
 	//Inicialização e paramentros do Fuzz
 	pteto_fuzz = 25.0;
 	octave_on = -1.0;
 		
 	//Inicialização e paramentros do Tremolo
 	contador_tremolo = 0;
-	velocidade_tremolo = 3;
+	velocidade_tremolo = 7;
 	subindo = 1;
 	
 	//Inicialização e Parametros do Delay
@@ -191,7 +197,10 @@ int main(int argc, char *argv[]) {
 	cout << " - To increase tremolo speed: x\n";
 	cout << " - To decrease tremolo speed: c\n";
 	cout << "- FILTER:\n";
-	cout << " - To toggle filter: l\n\n";
+	cout << " - To toggle filter: l\n";
+	cout << "- MASTER VOLUME:\n";
+	cout << " - To decrease master volume: n\n";
+	cout << " - To increase master volume: m\n\n";
 
 
 	char comando;
@@ -233,7 +242,7 @@ int main(int argc, char *argv[]) {
 		if(comando == 's'){
 			if(delay_time >= 10.0){cout << "Delay time is already maximized!\n";}
 			else {
-				delay_time = delay_time + 0.1; cout << "Delay time raised!\n";
+				delay_time = delay_time + 0.05; cout << "Delay time raised!\n";
 				tamanho_cauda = (int)floor(delay_time*48000);
 				cauda_delay = new float[tamanho_cauda];
 				for (uint j=0; j<tamanho_cauda; j++){
@@ -243,9 +252,9 @@ int main(int argc, char *argv[]) {
 		}
 		
 		if(comando == 'd'){
-			if(delay_time <= 0.11){cout << "Delay time is already minimized!\n";}
+			if(delay_time <= 0.051){cout << "Delay time is already minimized!\n";}
 			else {
-				delay_time = delay_time - 0.1; cout << "Delay time decreased!\n";
+				delay_time = delay_time - 0.05; cout << "Delay time decreased!\n";
 				tamanho_cauda = (int)floor(delay_time*48000);
 				cauda_delay = new float[tamanho_cauda];
 				for (uint j=0; j<tamanho_cauda; j++){
@@ -291,6 +300,16 @@ int main(int argc, char *argv[]) {
 		if(comando == 'l'){
 			if(filtro_on == 1){filtro_on = 0; cout << "Filtro off!\n";}
 			else if(filtro_on == 0){filtro_on = 1; cout << "Filtro on!\n";}
+		}
+
+		//Master Volume
+		if(comando == 'm'){
+			if(volGlobal >= 10){cout << "Master volume is already maximized!\n";}
+			else {volGlobal = volGlobal + 0.5;; cout << "Master volume increased!\n";}
+		}
+		if(comando == 'n'){
+			if(volGlobal <= 0.01){cout << "Master volume is already minimized!\n";}
+			else {volGlobal = volGlobal - 0.5;; cout << "Master volume minimized!\n";}
 		}
 
 	}
